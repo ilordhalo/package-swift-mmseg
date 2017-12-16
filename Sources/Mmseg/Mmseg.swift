@@ -63,7 +63,7 @@ public class Mmseg {
     
     // MARK: Properties
     
-    static let sharedInstance = Mmseg()
+    public static let sharedInstance = Mmseg()
     
     static private var wordsManager: WordsManager?
     
@@ -76,7 +76,7 @@ public class Mmseg {
     private init() {
     }
     
-    func load(wordsPath: String, charactersPath: String) {
+    public func load(wordsPath: String, charactersPath: String) {
         Mmseg.wordsManager = WordsManager()
         Mmseg.wordsManager?.loadWords(from: wordsPath)
         Mmseg.wordsManager?.loadCharacter(from: charactersPath)
