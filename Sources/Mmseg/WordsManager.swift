@@ -9,10 +9,6 @@
 import Foundation
 
 class WordsManager {
-    // MARK: Constants
-    
-    private let subpath = "Data/Mmseg/"
-    
     // MARK: Properties
     
     private var trie: Trie!
@@ -64,7 +60,7 @@ class WordsManager {
     
     private func getData(from path: String) -> String {
         let fileManager = FileManager.default
-        let url = URL.init(fileURLWithPath: subpath + path)
+        let url = URL.init(fileURLWithPath: path)
         let filePath = url.path
         guard fileManager.fileExists(atPath: filePath) else {
             fatalError("No Such File " + filePath)

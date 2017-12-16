@@ -8,7 +8,7 @@
 
 import Foundation
 
-class Mmseg {
+public class Mmseg {
     // MARK: Types
     
     class Chunk {
@@ -69,6 +69,8 @@ class Mmseg {
     
     private var sentence: String?
     
+    public var isDebug = false
+    
     // MARK: Initialization
     
     private init() {
@@ -80,17 +82,14 @@ class Mmseg {
         Mmseg.wordsManager?.loadCharacter(from: charactersPath)
     }
     
-    func set(wordsManager: WordsManager) {
-        Mmseg.wordsManager = wordsManager
-    }
-    
     // MARK: Public Methods
     
-    func segment(sentence: String, depth: Int) -> [String] {
+    public func segment(sentence: String, depth: Int) -> [String] {
         var words = [String]()
         self.sentence = sentence
         var start = sentence.startIndex
         let end = sentence.endIndex
+        var step = 1
         while start != end {
             let chunks = getChunks(start: start, end: end, depth: depth)
             guard let bestChunk = chunks.max(by: {
@@ -102,6 +101,14 @@ class Mmseg {
             let word = bestChunk.firstWord()
             words.append(word)
             start = sentence.index(start, offsetBy: word.count)
+            if isDebug {
+                print("Step " + String(step) + ":")
+                for chunk in chunks {
+                    print(chunk.description())
+                }
+                print("Best one is " + bestChunk.description())
+            }
+            step += 1
         }
         return words
     }
