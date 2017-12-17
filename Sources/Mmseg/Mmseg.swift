@@ -76,7 +76,7 @@ public class Mmseg {
     private init() {
     }
     
-    func load(wordsPath: String, charactersPath: String, quantifierPath: String, chineseNumberPath: String) {
+    public func load(wordsPath: String, charactersPath: String, quantifierPath: String, chineseNumberPath: String) {
         Mmseg.wordsManager = WordsManager()
         Mmseg.wordsManager?.loadWords(from: wordsPath)
         Mmseg.wordsManager?.loadCharacter(from: charactersPath)
