@@ -13,12 +13,14 @@ class WordsManager {
     
     private var trie: Trie!
     private var characters: [Character: Int]!
+    private var quantifier: [Character]!
     
     // MARK: Initialization
     
     init() {
         trie = Trie()
         characters = [Character: Int]()
+        quantifier = [Character]()
     }
     
     // MARK: Public Methods
@@ -26,18 +28,41 @@ class WordsManager {
     func loadWords(from path: String) {
         let dataString = getData(from: path)
         for word in dataString.split(separator: "\n") {
-            trie.add(word: String(word))
+            let trimWord = word.trimmingCharacters(in: [" "])
+            trie.add(word: trimWord)
         }
     }
     
     func loadCharacter(from path: String) {
         let dataString = getData(from: path)
         for line in dataString.split(separator: "\n") {
-            let section = line.split(separator: " ").map({
+            let trimLine = line.trimmingCharacters(in: [" "])
+            let section = trimLine.split(separator: " ").map({
                 element in
                 return String(element)
             })
             characters[Character(section[0])] = Int(section[1])
+        }
+    }
+    
+    func loadQuantifier(from path: String) {
+        let dataString = getData(from: path)
+        for line in dataString.split(separator: "\r\n") {
+            let trimLine = line.trimmingCharacters(in: [" "])
+            if trimLine.first == "#" {
+                continue
+            }
+            quantifier.append(Character(trimLine))
+        }
+        trie.initNumberNode(quantifier: quantifier)
+    }
+    
+    func loadChineseNumber(from path: String) {
+        let dataString = getData(from: path)
+        StringUtil.chineseNumbers = [Character]()
+        for line in dataString.split(separator: "\n") {
+            let trimLine = line.trimmingCharacters(in: [" "])
+            StringUtil.chineseNumbers?.append(Character(trimLine))
         }
     }
     
@@ -46,10 +71,6 @@ class WordsManager {
             return 0
         }
         return value
-    }
-    
-    func matchedStrings(sentence: String) -> [String] {
-        return trie.matchAll(sentence: sentence)
     }
     
     func matchedStrings(sentence: Substring) -> [Substring] {

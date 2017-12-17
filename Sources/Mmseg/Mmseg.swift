@@ -11,12 +11,12 @@ import Foundation
 public class Mmseg {
     // MARK: Types
     
-    class Chunk {
-        var words = [Substring]()
-        var length: Int = 0
-        var averageLength: Float = 0.0
-        var variance: Float = 0.0
-        var degree: Float = 0.0
+    private class Chunk {
+        private(set) var words = [Substring]()
+        private(set) var length: Int = 0
+        private(set) var averageLength: Float = 0.0
+        private(set) var variance: Float = 0.0
+        private(set) var degree: Float = 0.0
         
         init(words: [Substring]) {
             self.words = words
@@ -41,7 +41,7 @@ public class Mmseg {
         
         private func evaluate() {
             guard let wordsManager = Mmseg.wordsManager else {
-                fatalError("WordsManager Has Not Been Initialized")
+                fatalError("Mmseg.wordsManager Might Not Been Initialized")
             }
             let wordsLengthF = Float(words.count)
             for word in words {
@@ -63,9 +63,9 @@ public class Mmseg {
     
     // MARK: Properties
     
-    static let sharedInstance = Mmseg()
+    public static let sharedInstance = Mmseg()
     
-    static private var wordsManager: WordsManager?
+    private static var wordsManager: WordsManager?
     
     private var sentence: String?
     
@@ -76,10 +76,12 @@ public class Mmseg {
     private init() {
     }
     
-    func load(wordsPath: String, charactersPath: String) {
+    func load(wordsPath: String, charactersPath: String, quantifierPath: String, chineseNumberPath: String) {
         Mmseg.wordsManager = WordsManager()
         Mmseg.wordsManager?.loadWords(from: wordsPath)
         Mmseg.wordsManager?.loadCharacter(from: charactersPath)
+        Mmseg.wordsManager?.loadQuantifier(from: quantifierPath)
+        Mmseg.wordsManager?.loadChineseNumber(from: chineseNumberPath)
     }
     
     // MARK: Public Methods
