@@ -8,6 +8,16 @@
 
 import Foundation
 
+private extension Array {
+    var length: Int {
+        var length = 0
+        for element in self as! [Substring] {
+            length += element.count
+        }
+        return length
+    }
+}
+
 public class Mmseg {
     // MARK: Types
     
@@ -48,7 +58,7 @@ public class Mmseg {
                 let len = word.count
                 length += len
                 if len == 1 {
-                    degree += log(Float(wordsManager.characterValue(character: Character(String(word)))))
+                    degree += wordsManager.characterValue(character: word.first!)
                 }
             }
             averageLength = Float(length) / wordsLengthF
@@ -58,6 +68,7 @@ public class Mmseg {
             }
             variance /= wordsLengthF
             variance = -variance
+            Mmseg.sharedInstance.tag += 1
         }
     }
     
@@ -71,22 +82,36 @@ public class Mmseg {
     
     public var isDebug = false
     
+    public var tag = 0
+    
     // MARK: Initialization
     
     private init() {
     }
     
-    public func load(wordsPath: String, charactersPath: String, quantifierPath: String, chineseNumberPath: String) {
+    /**
+        执行分词前必须先要执行该方法，进行分词必须的数据的加载
+        输入中文词汇集路径，单字集路径，量词集路径，中文数字集路径，中文标点集路径
+     */
+    public func load(wordsPath: String, charactersPath: String, quantifierPath: String, chineseNumberPath: String, punctuationPath: String) {
         Mmseg.wordsManager = WordsManager()
         Mmseg.wordsManager?.loadWords(from: wordsPath)
         Mmseg.wordsManager?.loadCharacter(from: charactersPath)
         Mmseg.wordsManager?.loadQuantifier(from: quantifierPath)
         Mmseg.wordsManager?.loadChineseNumber(from: chineseNumberPath)
+        Mmseg.wordsManager?.loadPunctuation(from: punctuationPath)
     }
     
     // MARK: Public Methods
     
+    /**
+        执行中文分词
+        输入待分词文本及分词深度
+        返回词汇集合
+     */
     public func segment(sentence: String, depth: Int) -> [String] {
+        objc_sync_enter(self.sentence)
+        objc_sync_enter(Mmseg.wordsManager)
         var words = [String]()
         self.sentence = sentence
         var start = sentence.startIndex
@@ -112,6 +137,8 @@ public class Mmseg {
             }
             step += 1
         }
+        objc_sync_exit(Mmseg.wordsManager)
+        objc_sync_exit(self.sentence)
         return words
     }
     
@@ -125,15 +152,22 @@ public class Mmseg {
             fatalError("Sentence Has Not Been Set")
         }
         var chunks = [Chunk]()
+        var maxLength = 0
         func getChunksSubstring(start: Substring.Index, end: Substring.Index, depth: Int, segs: [Substring]) {
             if depth == 0 || start == end {
+                let segsLength = segs.length
+                // 简单的剪枝
+                if segsLength < maxLength {
+                    return
+                }
+                maxLength = segsLength
                 chunks.append(Chunk(words: segs))
                 return
             }
             let matchedWords = wordsManager.matchedStrings(sentence: sentence[start..<end])
-            for word in matchedWords {
+            for word in matchedWords.reversed() {
                 var newSegs = segs
-                newSegs.append(Substring(word))
+                newSegs.append(word)
                 getChunksSubstring(start: sentence.index(start, offsetBy: word.count), end: end, depth: depth - 1, segs: newSegs)
             }
             let nextStart = sentence.index(after: start)

@@ -25,27 +25,13 @@ class Trie {
     
     private var root: Node!
     
-    private var numberNode: Node!
-    
-    private var otherNode: Node!
-    
     // MARK: Initialization
     
     init() {
         root = Node(value: "R")
-        otherNode = Node(value: "O")
     }
     
     // MARK: Public Methods
-    
-    func initNumberNode(quantifier: [Character]) {
-        numberNode = Node(value: "N")
-        for element in quantifier {
-            let newNode = Node(value: element)
-            newNode.isEnd = true
-            numberNode.children[element] = newNode
-        }
-    }
     
     func add(word: String) {
         var node = root!
@@ -65,53 +51,63 @@ class Trie {
         var response = [Substring]()
         var prefix = Substring()
         var node = root!
-        for c in sentence {
-            if let child = node.children[c] {
-                prefix += String(c)
-                node = child
-                if node.isEnd {
-                    response.append(prefix)
+        guard let firstCharacter = sentence.first else {
+            return response
+        }
+        // 量词匹配
+        if StringUtil.isNumber(character: firstCharacter) {
+            for c in sentence {
+                if StringUtil.isNumber(character: c) {
+                    prefix.append(c)
                 }
-            }
-            else if StringUtil.isNumber(character: c) {
-                // !StringUtil.isNumber(character: node.value)
-                // 表示如果先前匹配的是数字仍可进入
-                if (node.value != otherNode.value && node.value != numberNode.value) && node.value != root.value && !StringUtil.isNumber(character: node.value) {
+                else if StringUtil.isQuantifier(character: c) {
+                    prefix.append(c)
+                    response.append(prefix)
+                    prefix = ""
                     break
                 }
-                // 不是连续的数字时视为新词，如:n123中n视为一个词
-                if node.value == otherNode.value {
+                else {
                     response.append(prefix)
-                }
-                prefix += String(c)
-                node = numberNode
-            }
-            else if !StringUtil.isChinese(character: c) {
-                if (node.value != otherNode.value && node.value != numberNode.value) && node.value != root.value {
+                    prefix = ""
                     break
                 }
-                // 不是连续的特殊字符时视为新词，如:1+1=2中1视为一词
-                if node.value == numberNode.value {
-                    response.append(prefix)
-                }
-                prefix += String(c)
-                node = otherNode
             }
-            // 避免匹配数字匹配到一半后中断，而跳过量词匹配
-            else if let child = numberNode.children[c] {
-                if StringUtil.isNumber(character: node.value) {
-                    prefix += String(c)
+        }
+        if StringUtil.isChinese(character: firstCharacter) {
+            // 词典匹配
+            for c in sentence {
+                Mmseg.sharedInstance.tag += 1
+                if let child = node.children[c] {
+                    //prefix += String(c)
+                    prefix.append(c)
                     node = child
                     if node.isEnd {
                         response.append(prefix)
                     }
                 }
-            }
-            else {
-                break
+                else {
+                    break
+                }
             }
         }
-        response.append(prefix)
+        else {
+            // 中文标点匹配
+            if StringUtil.isPunctuation(character: firstCharacter) {
+                prefix.append(firstCharacter)
+                response.append(prefix)
+                return response
+            }
+            // 进行特殊符号匹配
+            for c in sentence {
+                if !StringUtil.isChinese(character: c) && !StringUtil.isPunctuation(character: c) {
+                    prefix.append(c)
+                }
+                else {
+                    response.append(prefix)
+                    break
+                }
+            }
+        }
         return response
     }
 }

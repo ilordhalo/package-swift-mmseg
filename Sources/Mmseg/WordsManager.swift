@@ -12,15 +12,13 @@ class WordsManager {
     // MARK: Properties
     
     private var trie: Trie!
-    private var characters: [Character: Int]!
-    private var quantifier: [Character]!
+    private var characters: [Character: Float]!
     
     // MARK: Initialization
     
     init() {
         trie = Trie()
-        characters = [Character: Int]()
-        quantifier = [Character]()
+        characters = [Character: Float]()
     }
     
     // MARK: Public Methods
@@ -41,20 +39,20 @@ class WordsManager {
                 element in
                 return String(element)
             })
-            characters[Character(section[0])] = Int(section[1])
+            characters[Character(section[0])] = Float(section[1])
         }
     }
     
     func loadQuantifier(from path: String) {
         let dataString = getData(from: path)
+        StringUtil.quantifier = [Character]()
         for line in dataString.split(separator: "\r\n") {
             let trimLine = line.trimmingCharacters(in: [" "])
             if trimLine.first == "#" {
                 continue
             }
-            quantifier.append(Character(trimLine))
+            StringUtil.quantifier?.append(Character(trimLine))
         }
-        trie.initNumberNode(quantifier: quantifier)
     }
     
     func loadChineseNumber(from path: String) {
@@ -66,7 +64,19 @@ class WordsManager {
         }
     }
     
-    func characterValue(character: Character) -> Int {
+    func loadPunctuation(from path: String) {
+        let dataString = getData(from: path)
+        StringUtil.punctuation = [Character]()
+        for line in dataString.split(separator: "\n") {
+            let trimLine = line.trimmingCharacters(in: [" "])
+            guard let character = trimLine.first else {
+                fatalError("Unexpected Punctuation Found In '" + trimLine + "'")
+            }
+            StringUtil.punctuation?.append(character)
+        }
+    }
+    
+    func characterValue(character: Character) -> Float {
         guard let value = characters[character] else {
             return 0
         }

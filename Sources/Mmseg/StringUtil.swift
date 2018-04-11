@@ -13,6 +13,10 @@ class StringUtil {
     
     static var chineseNumbers: [Character]?
     
+    static var quantifier: [Character]?
+    
+    static var punctuation: [Character]?
+    
     // MARK: Public Methods
     
     static func isChinese(character: Character) -> Bool {
@@ -44,5 +48,19 @@ class StringUtil {
             }
         }
         return true
+    }
+    
+    static func isQuantifier(character: Character) -> Bool {
+        guard let quantifier = StringUtil.quantifier else {
+            fatalError("StringUtil.quantifier Might Not Been Initialized")
+        }
+        return quantifier.contains(character)
+    }
+    
+    static func isPunctuation(character: Character) -> Bool {
+        guard let punctuation = StringUtil.punctuation else {
+            fatalError("StringUtil.punctuation Might Not Been Initialized")
+        }
+        return punctuation.contains(character)
     }
 }
